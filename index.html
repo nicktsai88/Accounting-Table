@@ -12,6 +12,7 @@
             background-color: #fff0f6;
             background-image: radial-gradient(#ffe4e6 1px, transparent 1px);
             background-size: 20px 20px;
+            /* 移除觸控點擊時的閃爍背景 */
             -webkit-tap-highlight-color: transparent;
         }
         /* 隱藏數字輸入框的上下箭頭 */
@@ -79,8 +80,8 @@
                 <p class="text-pink-400 mb-8 text-lg font-bold bg-pink-50 inline-block px-5 py-2 rounded-full border border-pink-100 shadow-sm">雲端自動同步 ☁️ 支援跨裝置</p>
                 
                 <div class="space-y-6">
-                    <input type="text" id="usernameInput" placeholder="✍️ 請輸入您的姓名或分店代號" class="w-full px-6 py-5 text-xl rounded-2xl border-2 border-pink-200 focus:outline-none focus:border-pink-500 focus:ring-4 focus:ring-pink-200 text-center transition-all bg-white/80 shadow-inner font-bold text-gray-700">
-                    <button onclick="handleLogin(document.getElementById('usernameInput').value)" class="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-4 px-6 text-2xl rounded-2xl shadow-lg transform hover:scale-[1.02] transition-all">
+                    <input type="text" id="usernameInput" placeholder="✍️ 請輸入您的姓名或分店代號" class="w-full px-6 py-5 text-xl rounded-2xl border-2 border-pink-200 focus:outline-none focus:border-pink-500 focus:ring-4 focus:ring-pink-200 text-center transition-all bg-white/80 shadow-inner font-bold text-gray-700 min-h-[44px]">
+                    <button onclick="handleLogin(document.getElementById('usernameInput').value)" class="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-4 px-6 text-2xl rounded-2xl shadow-lg transform hover:scale-[1.02] transition-all min-h-[44px]">
                         進入系統 ✨
                     </button>
                 </div>
@@ -95,7 +96,7 @@
         </div>
 
         <!-- ============================================== -->
-        <!-- 儀表板視窗 (Dashboard View - 原本的 UI)        -->
+        <!-- 儀表板視窗 (Dashboard View)                    -->
         <!-- ============================================== -->
         <div id="dashboard-view" class="hidden animate-fade-in p-4 md:p-8">
             <div class="max-w-[1600px] mx-auto">
@@ -124,7 +125,7 @@
                         <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-sm border border-pink-100">
                             <span class="font-bold text-purple-700">👤 <span id="display-username">管理員</span></span>
                             <div class="w-px h-5 bg-pink-200"></div>
-                            <button onclick="logout()" class="text-gray-400 hover:text-pink-500 font-bold transition-colors">登出 🚪</button>
+                            <button onclick="logout()" class="text-gray-400 hover:text-pink-500 font-bold transition-colors min-h-[44px] min-w-[44px]">登出 🚪</button>
                         </div>
                     </div>
                 </div>
@@ -132,28 +133,17 @@
                 <!-- 主要年度營收總表 (CSS Grid) -->
                 <div class="glass-panel rounded-3xl shadow-xl overflow-hidden mb-12">
                     <div class="overflow-x-auto custom-scrollbar p-4">
-                        <div class="min-w-[1250px]" style="display: grid; grid-template-columns: 120px repeat(12, minmax(85px, 1fr)) 120px; gap: 4px;">
-                            
-                            <div class="bg-pink-300 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">🏪 分店</div>
-                            <script>
-                                for(let i=1; i<=12; i++) {
-                                    document.write(`<div class="bg-pink-200 text-pink-800 font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">🌸 ${i}月</div>`);
-                                }
-                            </script>
-                            <div class="bg-purple-300 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">💰 合計</div>
-
-                            <div id="grid-body" class="col-span-full" style="display: grid; grid-template-columns: subgrid; gap: 4px;"></div>
-
-                            <div class="bg-pink-400 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg mt-2 shadow-md whitespace-nowrap">📊 總計</div>
-                            <div id="monthly-totals" class="col-span-12" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin-top: 8px;"></div>
-                            <div id="grand-total" class="bg-purple-500 text-white font-bold p-3 rounded-xl flex items-center justify-center text-xl mt-2 shadow-md whitespace-nowrap">0</div>
+                        <div id="main-grid-container" class="min-w-[1250px]" style="display: grid; grid-template-columns: 120px repeat(12, minmax(85px, 1fr)) 120px; gap: 4px;">
+                            <!-- 將由 JS 動態生成內容，確保純淨的 DOM 操作 -->
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 彈出式視窗 (週營收紀錄表) -->
+        <!-- ============================================== -->
+        <!-- 彈出式視窗 (週營收紀錄表 Modal)                -->
+        <!-- ============================================== -->
         <div id="modal" class="fixed inset-0 bg-pink-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4 transition-opacity duration-300">
             <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-5xl overflow-hidden border-4 border-pink-200 transform transition-all scale-95" id="modal-content">
                 <div class="bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 p-5 flex justify-between items-center">
@@ -161,7 +151,8 @@
                         <span id="modal-title-emoji">🏬</span>
                         <span id="modal-title">分店 - 月份 營收紀錄表</span>
                     </h2>
-                    <button onclick="closeModal()" class="text-white hover:text-pink-100 bg-white/20 hover:bg-white/40 rounded-full w-10 h-10 flex items-center justify-center transition-colors text-xl">❌</button>
+                    <!-- 確保按鈕觸控區域大於 44px -->
+                    <button onclick="closeModal()" class="text-white hover:text-pink-100 bg-white/20 hover:bg-white/40 rounded-full w-12 h-12 flex items-center justify-center transition-colors text-2xl">❌</button>
                 </div>
 
                 <div class="p-6 bg-pink-50/50">
@@ -189,8 +180,8 @@
                     </div>
 
                     <div class="mt-8 flex justify-end gap-4">
-                        <button onclick="closeModal()" class="px-6 py-3 rounded-xl font-bold text-pink-500 bg-pink-100 hover:bg-pink-200 transition-colors">稍後再填 🏃</button>
-                        <button onclick="saveModalData()" class="px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 shadow-lg transform hover:scale-105 transition-all">
+                        <button onclick="closeModal()" class="px-6 py-3 rounded-xl font-bold text-pink-500 bg-pink-100 hover:bg-pink-200 transition-colors min-h-[44px]">稍後再填 🏃</button>
+                        <button onclick="saveModalData()" class="px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 shadow-lg transform hover:scale-105 transition-all min-h-[44px]">
                             💾 儲存並更新總表
                         </button>
                     </div>
@@ -215,9 +206,12 @@
             '自由店', '福山店', '大寮店', '復興店', '鼎中店', '十全店', '華夏店', 
             '武廟店', '小港店', '斗六1店', '斗六2店', '虎尾店', '草屯店'
         ];
+        
+        // 確保與其他 APP 區隔的專屬集合名稱
         const COLLECTION_NAME = 'Salon-Revenue-App-v1';
         const DOC_GLOBAL = 'Global_Users_Salon';
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'salon-app-default';
+        const firebaseConfig = { apiKey: "" }; // 環境變數未提供時的安全預設
 
         // === 全域變數 ===
         let app, auth, db;
@@ -229,10 +223,10 @@
         let unsubscribeUser = null;
         let unsubscribeGlobal = null;
         
-        // 核心資料結構: userData 內包含原本的 appData 與登入歷史
+        // 核心資料結構: 包含主要資料與登入歷史
         let userData = { appData: {}, loginHistory: [] };
         
-        // UI 狀態
+        // UI 狀態紀錄
         let currentBranch = '';
         let currentMonth = 0;
 
@@ -240,7 +234,7 @@
         const el = id => document.getElementById(id);
         const formatMoney = num => Number(num).toLocaleString('zh-TW');
         
-        // 更新燈號 UI
+        // 更新連線狀態燈號 UI
         const updateStatusUI = () => {
             const loginDot = el('login-status-dot');
             const loginText = el('login-status-text');
@@ -257,7 +251,7 @@
             applyStatus(dashDot, dashText);
         };
 
-        // === 音效系統 (解決 iOS 限制) ===
+        // === 音效系統 (解決 iOS/iPadOS 限制，首次點擊時初始化) ===
         let audioCtx = null;
         const initAudio = () => {
             if (!audioCtx) {
@@ -289,8 +283,8 @@
         // === Firebase 初始化 ===
         const initFirebase = async () => {
             try {
-                const actualConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "fake-key-for-local" };
-                if (actualConfig.apiKey && actualConfig.apiKey !== "fake-key-for-local") {
+                const actualConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
+                if (actualConfig.apiKey && actualConfig.apiKey !== "fake-key-for-local" && actualConfig.apiKey !== "") {
                     app = initializeApp(actualConfig);
                     auth = getAuth(app);
                     db = getFirestore(app);
@@ -299,12 +293,12 @@
                 } else { throw new Error("No config"); }
             } catch (error) { 
                 connectionStatus = 'error'; 
-                console.warn("運行於本地離線模式");
+                console.warn("未偵測到 Firebase 配置，啟動本地離線模式");
             }
             updateStatusUI();
         };
 
-        // === 本地與雲端資料處理 ===
+        // === 雙向同步邏輯 (Cloud <-> Local) ===
         const loadLocalData = (name) => {
             try {
                 const local = localStorage.getItem(`${COLLECTION_NAME}_${name}_data`);
@@ -318,9 +312,11 @@
             try { if (name) localStorage.setItem(`${COLLECTION_NAME}_${name}_data`, JSON.stringify(userData)); } catch(e) {}
         };
 
+        // 寫入雲端 (先存本地容錯，再拋上雲端)
         const saveUserDataToCloud = async () => {
             saveLocalData(username);
             if (!isFirebaseInitialized || !currentUser || !username) return;
+            
             connectionStatus = 'loading'; updateStatusUI();
             try {
                 const userRef = doc(db, 'artifacts', appId, 'public', 'data', `${COLLECTION_NAME}_profiles`, username);
@@ -333,14 +329,25 @@
             updateStatusUI();
         };
 
-        // === 監聽雲端資料 ===
+        // === 監聽雲端資料 (onSnapshot) ===
         const listenToGlobalUsers = () => {
-            if (!isFirebaseInitialized || !currentUser) return;
+            if (!isFirebaseInitialized || !currentUser) {
+                // 離線容錯：讀取本地的最近使用者快取
+                let localRecentStr = localStorage.getItem(`${COLLECTION_NAME}_recent_users`);
+                if(localRecentStr) recentUsers = JSON.parse(localRecentStr);
+                renderRecentUsers();
+                return;
+            }
             const globalRef = doc(db, 'artifacts', appId, 'public', 'data', DOC_GLOBAL, COLLECTION_NAME);
             if(unsubscribeGlobal) unsubscribeGlobal();
             unsubscribeGlobal = onSnapshot(globalRef, (snap) => {
-                if(snap.exists()) recentUsers = snap.data().users || [];
-                else recentUsers = [];
+                if(snap.exists()) {
+                    recentUsers = snap.data().users || [];
+                    // 同步寫入本地快取
+                    localStorage.setItem(`${COLLECTION_NAME}_recent_users`, JSON.stringify(recentUsers));
+                } else {
+                    recentUsers = [];
+                }
                 renderRecentUsers();
             }, (err) => { connectionStatus = 'error'; updateStatusUI(); });
         };
@@ -357,14 +364,16 @@
             connectionStatus = 'loading'; updateStatusUI();
             unsubscribeUser = onSnapshot(userRef, (docSnap) => {
                 if (docSnap.exists()) {
+                    // 若雲端有資料，覆蓋本地變數並存入
                     userData = Object.assign({ appData: {}, loginHistory: [] }, docSnap.data());
                     saveLocalData(name);
                 } else {
+                    // 若雲端無資料，建立空資料寫入
                     userData = { appData: {}, loginHistory: [new Date().toISOString()] };
                     setDoc(userRef, userData, { merge: true });
                 }
                 connectionStatus = 'success'; updateStatusUI();
-                renderMainGrid(); // 資料更新後重繪主表
+                renderMainGrid(); // 觸發畫面重繪
             }, (error) => {
                 console.error("Listen user error", error);
                 connectionStatus = 'error'; updateStatusUI();
@@ -373,7 +382,7 @@
 
         // === 登入 / 登出邏輯 ===
         window.handleLogin = async (name) => {
-            initAudio(); // 啟用音效
+            initAudio(); // 突破觸控播放限制
             if(!name.trim()) {
                 const inputEl = el('usernameInput');
                 inputEl.classList.add('border-red-500', 'bg-red-50');
@@ -389,9 +398,19 @@
             localStorage.setItem(`${COLLECTION_NAME}_last_user`, username);
             el('display-username').innerText = username;
             
+            const now = new Date().toISOString();
+
+            // 不論線上或離線，更新本地快取的最近使用者名單
+            let localRecentStr = localStorage.getItem(`${COLLECTION_NAME}_recent_users`);
+            let localRecent = localRecentStr ? JSON.parse(localRecentStr) : [];
+            localRecent = localRecent.filter(u => u.name !== username);
+            localRecent.push({ name: username, lastLogin: now });
+            if (localRecent.length > 10) localRecent = localRecent.slice(-10);
+            localStorage.setItem(`${COLLECTION_NAME}_recent_users`, JSON.stringify(localRecent));
+            recentUsers = localRecent;
+            
             if (isFirebaseInitialized && currentUser) {
                 connectionStatus = 'loading'; updateStatusUI();
-                const now = new Date().toISOString();
                 const userRef = doc(db, 'artifacts', appId, 'public', 'data', `${COLLECTION_NAME}_profiles`, username);
                 try {
                     const snap = await getDoc(userRef);
@@ -405,7 +424,7 @@
                     
                     await setDoc(userRef, userData, { merge: true });
                     
-                    // 更新全域使用者列表
+                    // 更新全域使用者列表 (雲端)
                     const globalRef = doc(db, 'artifacts', appId, 'public', 'data', DOC_GLOBAL, COLLECTION_NAME);
                     const gSnap = await getDoc(globalRef);
                     let users = gSnap.exists() ? gSnap.data().users || [] : [];
@@ -438,13 +457,13 @@
             if(confirm("確定要登出嗎？")) {
                 username = '';
                 userData = { appData: {}, loginHistory: [] };
-                localStorage.removeItem(`${COLLECTION_NAME}_last_user`);
+                localStorage.removeItem(`${COLLECTION_NAME}_last_user`); // 清除快速登入依據
                 if(unsubscribeUser) unsubscribeUser();
                 
                 el('login-view').classList.remove('hidden');
                 el('dashboard-view').classList.add('hidden');
                 el('usernameInput').value = '';
-                renderRecentUsers();
+                renderRecentUsers(); // 重新渲染登入畫面上的紀錄
             }
         };
 
@@ -452,38 +471,53 @@
             const container = el('recent-users-container');
             if(recentUsers.length > 0) {
                 container.innerHTML = recentUsers.slice().reverse().slice(0, 8).map(u => 
-                    `<button onclick="handleLogin('${u.name}')" class="text-base font-bold bg-white/80 border-2 border-pink-200 text-pink-700 hover:bg-pink-100 hover:border-pink-400 px-5 py-2.5 rounded-xl shadow-sm transition-all transform hover:-translate-y-1">${u.name}</button>`
+                    `<button onclick="handleLogin('${u.name}')" class="text-base font-bold bg-white/80 border-2 border-pink-200 text-pink-700 hover:bg-pink-100 hover:border-pink-400 px-5 py-2.5 rounded-xl shadow-sm transition-all transform hover:-translate-y-1 min-h-[44px]">${u.name}</button>`
                 ).join('');
             } else {
-                container.innerHTML = `<span class="text-base text-pink-300 font-bold bg-white/50 px-5 py-2.5 rounded-xl">尚無雲端紀錄</span>`;
+                container.innerHTML = `<span class="text-base text-pink-300 font-bold bg-white/50 px-5 py-2.5 rounded-xl">尚無登入紀錄</span>`;
             }
         };
 
-        // === 應用程式啟動 ===
+        // === 系統啟動進入點 ===
         const bootApp = async () => {
             await initFirebase();
             const lastUser = localStorage.getItem(`${COLLECTION_NAME}_last_user`);
             
+            // 系統啟動時，預先讀取本地快取的名單，以防網路中斷
+            let localRecentStr = localStorage.getItem(`${COLLECTION_NAME}_recent_users`);
+            if (localRecentStr) recentUsers = JSON.parse(localRecentStr);
+
             if (isFirebaseInitialized) {
                 try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
-                    else await signInAnonymously(auth);
-                } catch(e) { connectionStatus = 'error'; updateStatusUI(); }
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch(e) { 
+                    connectionStatus = 'error'; updateStatusUI(); 
+                }
 
+                // 認證監聽 (Auth Before Queries)
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         currentUser = user;
                         listenToGlobalUsers();
+                        
+                        // 若有上次登入者直接跳過首頁
                         if (lastUser) {
                             username = lastUser;
                             el('display-username').innerText = username;
                             listenToUserDocument(username);
                             el('login-view').classList.add('hidden');
                             el('dashboard-view').classList.remove('hidden');
-                        } else renderRecentUsers();
+                        } else {
+                            renderRecentUsers();
+                        }
                     }
                 });
             } else {
+                // 離線降級啟動處理
                 if (lastUser) {
                     username = lastUser;
                     el('display-username').innerText = username;
@@ -491,12 +525,14 @@
                     el('login-view').classList.add('hidden');
                     el('dashboard-view').classList.remove('hidden');
                     renderMainGrid();
-                } else renderRecentUsers();
+                } else {
+                    renderRecentUsers();
+                }
             }
         };
 
         // ==============================================
-        // 原有業務邏輯 (綁定到 window 供 HTML 呼叫)
+        // 營收系統專屬 UI 繪製邏輯 (捨棄原 document.write，改為純 JS 渲染)
         // ==============================================
 
         window.getMonthTotalForBranch = (branch, month) => {
@@ -511,26 +547,34 @@
         };
 
         window.renderMainGrid = () => {
-            const gridBody = el('grid-body');
-            const monthlyTotalsContainer = el('monthly-totals');
-            if(!gridBody || !monthlyTotalsContainer) return;
+            const gridContainer = el('main-grid-container');
+            if(!gridContainer) return;
 
-            gridBody.innerHTML = '';
-            monthlyTotalsContainer.innerHTML = '';
+            let html = '';
+            
+            // 1. 標頭列
+            html += `<div class="bg-pink-300 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">🏪 分店</div>`;
+            for(let i=1; i<=12; i++) {
+                html += `<div class="bg-pink-200 text-pink-800 font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">🌸 ${i}月</div>`;
+            }
+            html += `<div class="bg-purple-300 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">💰 合計</div>`;
 
+            // 2. 資料列 (使用 CSS Subgrid)
+            html += `<div id="grid-body" class="col-span-full" style="display: grid; grid-template-columns: subgrid; gap: 4px;">`;
+            
             let grandTotal = 0;
             let monthlyTotals = new Array(12).fill(0);
 
             branches.forEach(branch => {
                 let branchYearTotal = 0;
-                gridBody.innerHTML += `<div class="bg-white font-bold p-3 rounded-xl flex items-center justify-center text-pink-700 shadow-sm border border-pink-100 whitespace-nowrap">${branch}</div>`;
+                html += `<div class="bg-white font-bold p-3 rounded-xl flex items-center justify-center text-pink-700 shadow-sm border border-pink-100 whitespace-nowrap">${branch}</div>`;
 
                 for (let m = 1; m <= 12; m++) {
                     const monthVal = getMonthTotalForBranch(branch, m);
                     branchYearTotal += monthVal;
                     monthlyTotals[m-1] += monthVal;
 
-                    gridBody.innerHTML += `
+                    html += `
                         <div onclick="openModal('${branch}', ${m})" 
                              class="bg-white p-3 rounded-xl flex items-center justify-end text-gray-600 shadow-sm border border-transparent hover:border-pink-300 hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group relative whitespace-nowrap">
                             ${monthVal > 0 ? formatMoney(monthVal) : '<span class="text-gray-300">-</span>'}
@@ -538,14 +582,22 @@
                         </div>
                     `;
                 }
-                gridBody.innerHTML += `<div class="bg-purple-50 font-bold p-3 rounded-xl flex items-center justify-end text-purple-700 shadow-sm border border-purple-100 whitespace-nowrap">${formatMoney(branchYearTotal)}</div>`;
+                html += `<div class="bg-purple-50 font-bold p-3 rounded-xl flex items-center justify-end text-purple-700 shadow-sm border border-purple-100 whitespace-nowrap">${formatMoney(branchYearTotal)}</div>`;
                 grandTotal += branchYearTotal;
             });
+            html += `</div>`; // End of Data Rows
 
+            // 3. 底部總計列
+            html += `<div class="bg-pink-400 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg mt-2 shadow-md whitespace-nowrap">📊 總計</div>`;
+            html += `<div class="col-span-12" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin-top: 8px;">`;
             monthlyTotals.forEach(total => {
-                monthlyTotalsContainer.innerHTML += `<div class="bg-pink-100 font-bold p-3 rounded-xl flex items-center justify-end text-pink-800 shadow-sm border border-pink-200 whitespace-nowrap">${formatMoney(total)}</div>`;
+                html += `<div class="bg-pink-100 font-bold p-3 rounded-xl flex items-center justify-end text-pink-800 shadow-sm border border-pink-200 whitespace-nowrap">${formatMoney(total)}</div>`;
             });
-            el('grand-total').innerText = formatMoney(grandTotal);
+            html += `</div>`;
+            html += `<div class="bg-purple-500 text-white font-bold p-3 rounded-xl flex items-center justify-center text-xl mt-2 shadow-md whitespace-nowrap">${formatMoney(grandTotal)}</div>`;
+
+            // 一次性寫入 DOM，提升效能
+            gridContainer.innerHTML = html;
         };
 
         window.createNumberInput = (className, value, placeholder) => `
@@ -657,8 +709,11 @@
                 });
             });
 
+            // 1. 更新資料
             userData.appData[currentBranch][currentMonth] = monthData;
             playSaveSound();
+            
+            // 2. 觸發雙向同步寫入 (會自動處理本地與雲端)
             saveUserDataToCloud();
             closeModal();
             renderMainGrid(); 
