@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>✨ 2026年 各分店營收總表 💇‍♀️</title>
+    <title>✨ 2026年 囍事快剪營收紀錄系統 💇‍♀️</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #fff0f6;
             background-image: radial-gradient(#ffe4e6 1px, transparent 1px);
             background-size: 20px 20px;
-            /* 移除觸控點擊時的閃爍背景 */
             -webkit-tap-highlight-color: transparent;
+            color: #4c1d95;
         }
         /* 隱藏數字輸入框的上下箭頭 */
         input[type="number"]::-webkit-inner-spin-button,
@@ -44,8 +45,8 @@
             border-radius: 10px;
             border: 3px solid #fce7f3;
         }
-
-        /* 系統狀態與動畫 CSS */
+        
+        /* 系統狀態燈號與動畫 */
         .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
         .status-loading { background-color: #fbbf24; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; box-shadow: 0 0 8px #fbbf24; }
         .status-success { background-color: #34d399; box-shadow: 0 0 8px #34d399; }
@@ -55,255 +56,131 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="text-gray-700 min-h-screen">
+<body class="h-screen w-full flex flex-col overflow-hidden">
 
-    <!-- 主程式容器 -->
-    <div id="app" class="w-full h-full relative">
-        
-        <!-- ============================================== -->
-        <!-- 登入視窗 (Login View)                          -->
-        <!-- ============================================== -->
-        <div id="login-view" class="fixed inset-0 z-40 flex items-center justify-center p-6 bg-[#fff0f6] bg-[radial-gradient(#ffe4e6_1px,transparent_1px)] [background-size:20px_20px] transition-opacity duration-300">
-            <div class="glass-panel p-8 md:p-12 rounded-[2.5rem] shadow-2xl z-10 w-[40rem] max-w-[95vw] text-center">
-                <!-- 右上角連線狀態 -->
-                <div class="absolute top-6 right-6 md:top-8 md:right-8">
-                    <div class="bg-white/80 px-4 py-2 rounded-full shadow-sm text-sm font-bold text-pink-800 flex items-center border border-pink-200">
-                        <span id="login-status-dot" class="status-dot status-loading"></span>
-                        <span id="login-status-text">雲端連線中...</span>
-                    </div>
-                </div>
+    <div id="app" class="w-full h-full flex flex-col overflow-hidden"></div>
 
-                <div class="w-24 h-24 bg-gradient-to-br from-pink-300 to-purple-400 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-lg transform rotate-3">
-                    <span class="text-5xl">💇‍♀️</span>
-                </div>
-                <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-pink-600 mb-4 tracking-widest drop-shadow-sm">營收紀錄系統</h1>
-                <p class="text-pink-400 mb-8 text-lg font-bold bg-pink-50 inline-block px-5 py-2 rounded-full border border-pink-100 shadow-sm">雲端自動同步 ☁️ 支援跨裝置</p>
-                
-                <div class="space-y-6">
-                    <input type="text" id="usernameInput" placeholder="✍️ 請輸入您的姓名或分店代號" class="w-full px-6 py-5 text-xl rounded-2xl border-2 border-pink-200 focus:outline-none focus:border-pink-500 focus:ring-4 focus:ring-pink-200 text-center transition-all bg-white/80 shadow-inner font-bold text-gray-700 min-h-[44px]">
-                    <button onclick="handleLogin(document.getElementById('usernameInput').value)" class="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-4 px-6 text-2xl rounded-2xl shadow-lg transform hover:scale-[1.02] transition-all min-h-[44px]">
-                        進入系統 ✨
-                    </button>
-                </div>
-                
-                <div class="mt-10 border-t-2 border-pink-100 border-dashed pt-6">
-                    <p class="text-base text-pink-400 mb-4 font-bold tracking-wide">☁️ 快速登入 (雲端最近使用者)</p>
-                    <div id="recent-users-container" class="flex flex-wrap justify-center gap-3">
-                        <span class="text-base text-gray-400 bg-white/50 px-5 py-2.5 rounded-xl border border-pink-100">讀取中...</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ============================================== -->
-        <!-- 儀表板視窗 (Dashboard View)                    -->
-        <!-- ============================================== -->
-        <div id="dashboard-view" class="hidden animate-fade-in p-4 md:p-8">
-            <div class="max-w-[1600px] mx-auto">
-                <!-- 標題與導覽區塊 -->
-                <div class="relative mb-8 bg-white/80 rounded-3xl p-6 shadow-sm border-2 border-pink-100 flex flex-col md:flex-row items-center justify-center w-full">
-                    
-                    <!-- Logo (左上) -->
-                    <div class="md:absolute md:left-6 mb-4 md:mb-0">
-                        <img src="images/logo.jpg" alt="公司 Logo" class="h-16 md:h-20 w-auto rounded-xl shadow-sm object-contain" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2260%22 viewBox=%220 0 100 60%22%3E%3Crect width=%22100%22 height=%2260%22 rx=%2210%22 fill=%22%23fbcfe8%22/%3E%3Ctext x=%2250%22 y=%2235%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2216%22 text-anchor=%22middle%22 fill=%22%23be185d%22%3ELOGO%3C/text%3E%3C/svg%3E';">
-                    </div>
-                    
-                    <!-- 標題 -->
-                    <div class="text-center">
-                        <h1 class="text-3xl md:text-4xl font-bold text-pink-500 drop-shadow-sm">
-                            💖 2026年 各分店營收總表 💖
-                        </h1>
-                        <p class="text-pink-400 mt-2 font-semibold">點擊各月份格子來填寫週結帳紀錄 ✍️</p>
-                    </div>
-
-                    <!-- 使用者與狀態 (右上) -->
-                    <div class="md:absolute md:right-6 mt-4 md:mt-0 flex flex-col items-end gap-2">
-                        <div class="bg-pink-50 px-3 py-1.5 rounded-full shadow-inner text-sm font-bold text-pink-800 border border-pink-200 flex items-center">
-                            <span id="dash-status-dot" class="status-dot status-loading"></span>
-                            <span id="dash-status-text">連線中</span>
-                        </div>
-                        <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-sm border border-pink-100">
-                            <span class="font-bold text-purple-700">👤 <span id="display-username">管理員</span></span>
-                            <div class="w-px h-5 bg-pink-200"></div>
-                            <button onclick="logout()" class="text-gray-400 hover:text-pink-500 font-bold transition-colors min-h-[44px] min-w-[44px]">登出 🚪</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 主要年度營收總表 (CSS Grid) -->
-                <div class="glass-panel rounded-3xl shadow-xl overflow-hidden mb-12">
-                    <div class="overflow-x-auto custom-scrollbar p-4">
-                        <div id="main-grid-container" class="min-w-[1250px]" style="display: grid; grid-template-columns: 120px repeat(12, minmax(85px, 1fr)) 120px; gap: 4px;">
-                            <!-- 將由 JS 動態生成內容，確保純淨的 DOM 操作 -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ============================================== -->
-        <!-- 彈出式視窗 (週營收紀錄表 Modal)                -->
-        <!-- ============================================== -->
-        <div id="modal" class="fixed inset-0 bg-pink-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4 transition-opacity duration-300">
-            <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-5xl overflow-hidden border-4 border-pink-200 transform transition-all scale-95" id="modal-content">
-                <div class="bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 p-5 flex justify-between items-center">
-                    <h2 class="text-2xl font-bold text-white drop-shadow-md flex items-center gap-2">
-                        <span id="modal-title-emoji">🏬</span>
-                        <span id="modal-title">分店 - 月份 營收紀錄表</span>
-                    </h2>
-                    <!-- 確保按鈕觸控區域大於 44px -->
-                    <button onclick="closeModal()" class="text-white hover:text-pink-100 bg-white/20 hover:bg-white/40 rounded-full w-12 h-12 flex items-center justify-center transition-colors text-2xl">❌</button>
-                </div>
-
-                <div class="p-6 bg-pink-50/50">
-                    <div class="overflow-x-auto custom-scrollbar pb-4">
-                        <div class="min-w-[900px]">
-                            <div class="grid grid-cols-[60px_140px_1fr_1fr_1fr_1fr_120px_120px_120px] gap-2 mb-3 bg-pink-100 p-3 rounded-2xl font-bold text-pink-800 text-center items-center shadow-sm">
-                                <div>序號</div>
-                                <div>📅 日期</div>
-                                <div>💵 紙鈔</div>
-                                <div>🪙 零錢</div>
-                                <div>💳 信用卡</div>
-                                <div>📱 Line Pay</div>
-                                <div class="text-purple-700">🧾 實際營收小計</div>
-                                <div class="text-blue-700">📝 結帳單金額</div>
-                                <div>⚖️ 正負差額</div>
-                            </div>
-                            <div id="modal-rows" class="space-y-2"></div>
-                            <div class="grid grid-cols-[60px_140px_1fr_1fr_1fr_1fr_120px_120px_120px] gap-2 mt-4 bg-pink-200/80 p-3 rounded-2xl font-bold text-lg items-center text-center shadow-md border-2 border-pink-300">
-                                <div class="col-span-6 text-right pr-4 text-pink-900">✨ 營收合計 ✨</div>
-                                <div id="modal-total-actual" class="text-purple-800 bg-white/60 rounded-lg p-1">0</div>
-                                <div class="text-right pr-4 text-pink-900">差額合計</div>
-                                <div id="modal-total-diff" class="bg-white/60 rounded-lg p-1">0</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-8 flex justify-end gap-4">
-                        <button onclick="closeModal()" class="px-6 py-3 rounded-xl font-bold text-pink-500 bg-pink-100 hover:bg-pink-200 transition-colors min-h-[44px]">稍後再填 🏃</button>
-                        <button onclick="saveModalData()" class="px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 shadow-lg transform hover:scale-105 transition-all min-h-[44px]">
-                            💾 儲存並更新總表
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- ============================================== -->
-    <!-- 核心邏輯模組 (Firebase + Local Storage)        -->
-    <!-- ============================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // === 基本常數 ===
+        // ==========================================
+        //  Firebase Configuration & Constants
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAxQFt76ZPXE7d0i1XeNZ1yiiD2WYNIfHs", 
+            authDomain: "chinese-learning-47f4d.firebaseapp.com",
+            projectId: "chinese-learning-47f4d",
+            storageBucket: "chinese-learning-47f4d.firebasestorage.app",
+            messagingSenderId: "76289812052",
+            appId: "1:76289812052:web:898384a916f9f341f62fc1"
+        };
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'hair-salon-app-default';
+        const COLLECTION_NAME = 'Accounting-Table'; // 已變更名稱
+        const DOC_GLOBAL = 'Global_Users_AccountingTable';      
+        
+        let app, auth, db;
+        let isFirebaseInitialized = false;
+        let currentUser = null;
+        let username = '';
+        
+        // 資料結構
+        let userData = { revenueData: {}, loginHistory: [] }; 
+        let connectionStatus = 'loading';
+        let recentUsers = [];
+        let unsubscribeUser = null;
+        let unsubscribeGlobal = null;
+        let currentTab = 'login';
+        
+        // 營收資料狀態 (關聯至 userData.revenueData)
+        let appData = {};
+        let currentBranch = '';
+        let currentMonth = 0;
+
         const branches = [
             '陽明店', '大昌店', '建興店', '後昌店', '左營店', '明誠店', '華榮店', 
             '光遠店', '大社店', '內惟店', '一心店', '五甲店', '瑞隆店', '德惠店', 
             '自由店', '福山店', '大寮店', '復興店', '鼎中店', '十全店', '華夏店', 
             '武廟店', '小港店', '斗六1店', '斗六2店', '虎尾店', '草屯店'
         ];
-        
-        // 確保與其他 APP 區隔的專屬集合名稱
-        const COLLECTION_NAME = 'Salon-Revenue-App-v1';
-        const DOC_GLOBAL = 'Global_Users_Salon';
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'salon-app-default';
-        const firebaseConfig = { apiKey: "" }; // 環境變數未提供時的安全預設
 
-        // === 全域變數 ===
-        let app, auth, db;
-        let isFirebaseInitialized = false;
-        let currentUser = null;
-        let username = '';
-        let connectionStatus = 'loading'; // loading, success, error
-        let recentUsers = [];
-        let unsubscribeUser = null;
-        let unsubscribeGlobal = null;
-        
-        // 核心資料結構: 包含主要資料與登入歷史
-        let userData = { appData: {}, loginHistory: [] };
-        
-        // UI 狀態紀錄
-        let currentBranch = '';
-        let currentMonth = 0;
+        // ==========================================
+        //  Firebase Initialization
+        // ==========================================
+        try {
+            const actualConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
+            if (actualConfig.apiKey && actualConfig.apiKey !== "填入key" && actualConfig.apiKey !== "YOUR_API_KEY") {
+                app = initializeApp(actualConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                isFirebaseInitialized = true;
+                connectionStatus = 'success';
+            } else { connectionStatus = 'error'; }
+        } catch (error) { connectionStatus = 'error'; }
 
-        // === UI 工具 ===
+        const initAuth = async () => {
+            if (!isFirebaseInitialized) return;
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+                else await signInAnonymously(auth);
+            } catch (error) { connectionStatus = 'error'; }
+        };
+
         const el = id => document.getElementById(id);
-        const formatMoney = num => Number(num).toLocaleString('zh-TW');
-        
-        // 更新連線狀態燈號 UI
-        const updateStatusUI = () => {
-            const loginDot = el('login-status-dot');
-            const loginText = el('login-status-text');
-            const dashDot = el('dash-status-dot');
-            const dashText = el('dash-status-text');
 
-            const applyStatus = (dot, textEl) => {
-                if(!dot || !textEl) return;
-                dot.className = `status-dot ${connectionStatus === 'loading' ? 'status-loading' : connectionStatus === 'success' ? 'status-success' : 'status-error'}`;
-                textEl.innerText = connectionStatus === 'loading' ? '雲端連線中...' : connectionStatus === 'success' ? '雲端已同步 ✨' : '連線失敗 ❌';
-            };
-
-            applyStatus(loginDot, loginText);
-            applyStatus(dashDot, dashText);
+        // ==========================================
+        //  Data Sync & Listeners (核心邏輯不變)
+        // ==========================================
+        const listenToGlobalUsers = () => {
+            if (!isFirebaseInitialized || !currentUser) return;
+            const globalRef = doc(db, 'artifacts', appId, 'public', 'data', DOC_GLOBAL, COLLECTION_NAME);
+            if(unsubscribeGlobal) unsubscribeGlobal();
+            unsubscribeGlobal = onSnapshot(globalRef, (snap) => {
+                if(snap.exists()) recentUsers = snap.data().users || [];
+                else recentUsers = [];
+                if(currentTab === 'login') renderLogin();
+            });
         };
 
-        // === 音效系統 (解決 iOS/iPadOS 限制，首次點擊時初始化) ===
-        let audioCtx = null;
-        const initAudio = () => {
-            if (!audioCtx) {
-                try {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    audioCtx = new AudioContext();
-                } catch(e) { console.warn("AudioContext unsupported"); }
+        const listenToUserDocument = (name) => {
+            if (!isFirebaseInitialized || !currentUser) {
+                loadLocalData(name);
+                return;
             }
-        };
-        const playTone = (freq, type, duration) => {
-            initAudio();
-            if(!audioCtx) return;
-            try {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.type = type;
-                oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + duration);
-            } catch(e) {}
-        };
-        const playSaveSound = () => { playTone(800, 'sine', 0.1); setTimeout(() => playTone(1200, 'sine', 0.15), 100); };
-
-        // === Firebase 初始化 ===
-        const initFirebase = async () => {
-            try {
-                const actualConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
-                if (actualConfig.apiKey && actualConfig.apiKey !== "fake-key-for-local" && actualConfig.apiKey !== "") {
-                    app = initializeApp(actualConfig);
-                    auth = getAuth(app);
-                    db = getFirestore(app);
-                    isFirebaseInitialized = true;
-                    connectionStatus = 'success';
-                } else { throw new Error("No config"); }
-            } catch (error) { 
-                connectionStatus = 'error'; 
-                console.warn("未偵測到 Firebase 配置，啟動本地離線模式");
-            }
-            updateStatusUI();
+            const userRef = doc(db, 'artifacts', appId, 'public', 'data', `${COLLECTION_NAME}_profiles`, name);
+            if(unsubscribeUser) unsubscribeUser();
+            unsubscribeUser = onSnapshot(userRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    userData = Object.assign({ revenueData: {}, loginHistory: [] }, docSnap.data());
+                    appData = userData.revenueData || {};
+                    saveLocalData(name);
+                } else {
+                    userData = { revenueData: {}, loginHistory: [new Date().toISOString()] };
+                    appData = {};
+                    setDoc(userRef, userData, { merge: true });
+                }
+                
+                // Refresh UI if in main view
+                if(currentTab === 'main') renderMainGrid();
+            }, (error) => console.error("Listen user error", error));
         };
 
-        // === 雙向同步邏輯 (Cloud <-> Local) ===
+        const saveUserDataToCloud = async () => {
+            userData.revenueData = appData;
+            saveLocalData(username);
+            if (!isFirebaseInitialized || !currentUser || !username) return;
+            const userRef = doc(db, 'artifacts', appId, 'public', 'data', `${COLLECTION_NAME}_profiles`, username);
+            try { await setDoc(userRef, userData, { merge: true }); } catch(e) { console.error("Firebase save error:", e); }
+        };
+
         const loadLocalData = (name) => {
             try {
-                const local = localStorage.getItem(`${COLLECTION_NAME}_${name}_data`);
-                if (local) {
-                    userData = Object.assign({ appData: {}, loginHistory: [] }, JSON.parse(local));
+                const localData = localStorage.getItem(`${COLLECTION_NAME}_${name}_data`);
+                if (localData) {
+                    userData = Object.assign({ revenueData: {}, loginHistory: [] }, JSON.parse(localData));
+                    appData = userData.revenueData || {};
                 }
             } catch(e) {}
         };
@@ -312,119 +189,67 @@
             try { if (name) localStorage.setItem(`${COLLECTION_NAME}_${name}_data`, JSON.stringify(userData)); } catch(e) {}
         };
 
-        // 寫入雲端 (先存本地容錯，再拋上雲端)
-        const saveUserDataToCloud = async () => {
-            saveLocalData(username);
-            if (!isFirebaseInitialized || !currentUser || !username) return;
-            
-            connectionStatus = 'loading'; updateStatusUI();
-            try {
-                const userRef = doc(db, 'artifacts', appId, 'public', 'data', `${COLLECTION_NAME}_profiles`, username);
-                await setDoc(userRef, userData, { merge: true });
-                connectionStatus = 'success';
-            } catch(e) {
-                console.error("Firebase save error:", e);
-                connectionStatus = 'error';
+        // ==========================================
+        //  App Initialization & Auth Flow
+        // ==========================================
+        const initApp = async () => {
+            renderApp();
+            const lastUser = localStorage.getItem(`${COLLECTION_NAME}_last_user`);
+            if (isFirebaseInitialized) {
+                await initAuth(); 
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        listenToGlobalUsers();
+                        if (lastUser) {
+                            username = lastUser;
+                            setTimeout(() => listenToUserDocument(username), 200);
+                            currentTab = 'main';
+                            renderMain();
+                        } else renderLogin();
+                    } else renderLogin();
+                });
+            } else {
+                if (lastUser) {
+                    username = lastUser;
+                    loadLocalData(username);
+                    currentTab = 'main';
+                    renderMain();
+                } else renderLogin();
             }
-            updateStatusUI();
         };
 
-        // === 監聽雲端資料 (onSnapshot) ===
-        const listenToGlobalUsers = () => {
-            if (!isFirebaseInitialized || !currentUser) {
-                // 離線容錯：讀取本地的最近使用者快取
-                let localRecentStr = localStorage.getItem(`${COLLECTION_NAME}_recent_users`);
-                if(localRecentStr) recentUsers = JSON.parse(localRecentStr);
-                renderRecentUsers();
-                return;
-            }
-            const globalRef = doc(db, 'artifacts', appId, 'public', 'data', DOC_GLOBAL, COLLECTION_NAME);
-            if(unsubscribeGlobal) unsubscribeGlobal();
-            unsubscribeGlobal = onSnapshot(globalRef, (snap) => {
-                if(snap.exists()) {
-                    recentUsers = snap.data().users || [];
-                    // 同步寫入本地快取
-                    localStorage.setItem(`${COLLECTION_NAME}_recent_users`, JSON.stringify(recentUsers));
-                } else {
-                    recentUsers = [];
-                }
-                renderRecentUsers();
-            }, (err) => { connectionStatus = 'error'; updateStatusUI(); });
-        };
-
-        const listenToUserDocument = (name) => {
-            if (!isFirebaseInitialized || !currentUser) {
-                loadLocalData(name);
-                renderMainGrid();
-                return;
-            }
-            const userRef = doc(db, 'artifacts', appId, 'public', 'data', `${COLLECTION_NAME}_profiles`, name);
-            if(unsubscribeUser) unsubscribeUser();
-            
-            connectionStatus = 'loading'; updateStatusUI();
-            unsubscribeUser = onSnapshot(userRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    // 若雲端有資料，覆蓋本地變數並存入
-                    userData = Object.assign({ appData: {}, loginHistory: [] }, docSnap.data());
-                    saveLocalData(name);
-                } else {
-                    // 若雲端無資料，建立空資料寫入
-                    userData = { appData: {}, loginHistory: [new Date().toISOString()] };
-                    setDoc(userRef, userData, { merge: true });
-                }
-                connectionStatus = 'success'; updateStatusUI();
-                renderMainGrid(); // 觸發畫面重繪
-            }, (error) => {
-                console.error("Listen user error", error);
-                connectionStatus = 'error'; updateStatusUI();
-            });
-        };
-
-        // === 登入 / 登出邏輯 ===
         window.handleLogin = async (name) => {
-            initAudio(); // 突破觸控播放限制
             if(!name.trim()) {
-                const inputEl = el('usernameInput');
+                const inputEl = document.getElementById('usernameInput');
                 inputEl.classList.add('border-red-500', 'bg-red-50');
-                inputEl.placeholder = "請輸入名稱才能進入！";
+                inputEl.placeholder = "名稱不能為空！";
                 setTimeout(() => {
                     inputEl.classList.remove('border-red-500', 'bg-red-50');
-                    inputEl.placeholder = "✍️ 請輸入您的姓名或分店代號";
+                    inputEl.placeholder = "✍️ 請輸入登入名稱";
                 }, 2000);
                 return;
             }
-            
             username = name;
             localStorage.setItem(`${COLLECTION_NAME}_last_user`, username);
-            el('display-username').innerText = username;
-            
-            const now = new Date().toISOString();
-
-            // 不論線上或離線，更新本地快取的最近使用者名單
-            let localRecentStr = localStorage.getItem(`${COLLECTION_NAME}_recent_users`);
-            let localRecent = localRecentStr ? JSON.parse(localRecentStr) : [];
-            localRecent = localRecent.filter(u => u.name !== username);
-            localRecent.push({ name: username, lastLogin: now });
-            if (localRecent.length > 10) localRecent = localRecent.slice(-10);
-            localStorage.setItem(`${COLLECTION_NAME}_recent_users`, JSON.stringify(localRecent));
-            recentUsers = localRecent;
             
             if (isFirebaseInitialized && currentUser) {
-                connectionStatus = 'loading'; updateStatusUI();
+                const now = new Date().toISOString();
                 const userRef = doc(db, 'artifacts', appId, 'public', 'data', `${COLLECTION_NAME}_profiles`, username);
                 try {
                     const snap = await getDoc(userRef);
                     if (snap.exists()) {
-                        userData = Object.assign({ appData: {}, loginHistory: [] }, snap.data());
+                        userData = Object.assign({ revenueData: {}, loginHistory: [] }, snap.data());
+                        appData = userData.revenueData || {};
                     } else loadLocalData(username);
                     
                     if (!userData.loginHistory) userData.loginHistory = [];
                     userData.loginHistory.push(now);
-                    if (userData.loginHistory.length > 30) userData.loginHistory = userData.loginHistory.slice(-30);
+                    if (userData.loginHistory.length > 50) userData.loginHistory = userData.loginHistory.slice(-50);
                     
                     await setDoc(userRef, userData, { merge: true });
                     
-                    // 更新全域使用者列表 (雲端)
+                    // Update global recent users
                     const globalRef = doc(db, 'artifacts', appId, 'public', 'data', DOC_GLOBAL, COLLECTION_NAME);
                     const gSnap = await getDoc(globalRef);
                     let users = gSnap.exists() ? gSnap.data().users || [] : [];
@@ -432,13 +257,7 @@
                     users.push({ name: username, lastLogin: now });
                     if(users.length > 10) users = users.slice(-10);
                     await setDoc(globalRef, { users }, { merge: true });
-                    
-                    connectionStatus = 'success';
-                } catch(e) { 
-                    console.error("Login data sync error:", e); 
-                    connectionStatus = 'error';
-                }
-                updateStatusUI();
+                } catch(e) { console.error("Login data sync error:", e); }
                 listenToUserDocument(username);
             } else {
                 loadLocalData(username);
@@ -446,99 +265,216 @@
                 userData.loginHistory.push(new Date().toISOString());
                 saveLocalData(username);
             }
-            
-            // 切換畫面
-            el('login-view').classList.add('hidden');
-            el('dashboard-view').classList.remove('hidden');
-            renderMainGrid();
+            currentTab = 'main';
+            renderMain();
         };
 
         window.logout = () => {
-            if(confirm("確定要登出嗎？")) {
-                username = '';
-                userData = { appData: {}, loginHistory: [] };
-                localStorage.removeItem(`${COLLECTION_NAME}_last_user`); // 清除快速登入依據
+            username = '';
+            userData = { revenueData: {}, loginHistory: [] };
+            appData = {};
+            localStorage.removeItem(`${COLLECTION_NAME}_last_user`);
+            if(unsubscribeUser) unsubscribeUser();
+            renderLogin();
+        };
+
+        window.deleteUserData = async () => {
+            if(!confirm(`確定要從雲端刪除 ${username} 的所有報表資料？此操作無法復原！`)) return;
+            try {
+                if (isFirebaseInitialized && currentUser) {
+                    const globalRef = doc(db, 'artifacts', appId, 'public', 'data', DOC_GLOBAL, COLLECTION_NAME);
+                    const snap = await getDoc(globalRef);
+                    if(snap.exists()) {
+                        let users = snap.data().users || [];
+                        users = users.filter(u => u.name !== username);
+                        await setDoc(globalRef, { users }, { merge: true });
+                    }
+                    const userRef = doc(db, 'artifacts', appId, 'public', 'data', `${COLLECTION_NAME}_profiles`, username);
+                    await setDoc(userRef, { revenueData: {}, loginHistory: [] }, { merge: true });
+                }
+                localStorage.removeItem(`${COLLECTION_NAME}_last_user`);
+                localStorage.removeItem(`${COLLECTION_NAME}_${username}_data`);
+                userData = { revenueData: {}, loginHistory: [] };
+                appData = {};
                 if(unsubscribeUser) unsubscribeUser();
-                
-                el('login-view').classList.remove('hidden');
-                el('dashboard-view').classList.add('hidden');
-                el('usernameInput').value = '';
-                renderRecentUsers(); // 重新渲染登入畫面上的紀錄
-            }
+                username = '';
+                renderLogin();
+            } catch(e) { alert("刪除失敗，請稍後再試"); }
         };
 
-        const renderRecentUsers = () => {
-            const container = el('recent-users-container');
-            if(recentUsers.length > 0) {
-                container.innerHTML = recentUsers.slice().reverse().slice(0, 8).map(u => 
-                    `<button onclick="handleLogin('${u.name}')" class="text-base font-bold bg-white/80 border-2 border-pink-200 text-pink-700 hover:bg-pink-100 hover:border-pink-400 px-5 py-2.5 rounded-xl shadow-sm transition-all transform hover:-translate-y-1 min-h-[44px]">${u.name}</button>`
-                ).join('');
-            } else {
-                container.innerHTML = `<span class="text-base text-pink-300 font-bold bg-white/50 px-5 py-2.5 rounded-xl">尚無登入紀錄</span>`;
-            }
-        };
+        // ==========================================
+        //  Views Rendering
+        // ==========================================
+        const renderApp = () => { el('app').innerHTML = `<div id="view-container" class="w-full h-full flex flex-col relative"></div>`; };
 
-        // === 系統啟動進入點 ===
-        const bootApp = async () => {
-            await initFirebase();
-            const lastUser = localStorage.getItem(`${COLLECTION_NAME}_last_user`);
-            
-            // 系統啟動時，預先讀取本地快取的名單，以防網路中斷
-            let localRecentStr = localStorage.getItem(`${COLLECTION_NAME}_recent_users`);
-            if (localRecentStr) recentUsers = JSON.parse(localRecentStr);
-
-            if (isFirebaseInitialized) {
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                } catch(e) { 
-                    connectionStatus = 'error'; updateStatusUI(); 
-                }
-
-                // 認證監聽 (Auth Before Queries)
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        currentUser = user;
-                        listenToGlobalUsers();
+        window.renderLogin = () => {
+            currentTab = 'login';
+            el('view-container').innerHTML = `
+                <div class="flex-1 flex flex-col items-center justify-center p-6 relative animate-fade-in z-10 overflow-y-auto">
+                    <!-- 連線狀態 -->
+                    <div class="absolute top-6 right-6 z-20">
+                        <div class="glass-panel px-4 py-2 rounded-full shadow-sm text-sm font-bold text-pink-800 flex items-center">
+                            <span class="status-dot ${connectionStatus === 'loading' ? 'status-loading' : connectionStatus === 'success' ? 'status-success' : 'status-error'}"></span>
+                            ${connectionStatus === 'loading' ? '雲端讀取中... ⏳' : connectionStatus === 'success' ? '雲端已同步 ☁️✨' : '雲端連線失敗 ❌'}
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel p-8 md:p-12 rounded-[2rem] shadow-2xl z-10 w-[32rem] max-w-[95vw] text-center border-4 border-pink-200">
+                        <div class="w-24 h-24 bg-pink-100 rounded-[2rem] mx-auto mb-6 flex items-center justify-center shadow-inner border border-pink-300 transform -rotate-3">
+                            <span class="text-6xl text-white drop-shadow-sm">💇‍♀️</span>
+                        </div>
+                        <h1 class="text-3xl md:text-4xl font-extrabold text-pink-600 mb-2 drop-shadow-sm">囍事快剪</h1>
+                        <h2 class="text-2xl font-bold text-pink-400 mb-8 tracking-wider">營收紀錄系統</h2>
                         
-                        // 若有上次登入者直接跳過首頁
-                        if (lastUser) {
-                            username = lastUser;
-                            el('display-username').innerText = username;
-                            listenToUserDocument(username);
-                            el('login-view').classList.add('hidden');
-                            el('dashboard-view').classList.remove('hidden');
-                        } else {
-                            renderRecentUsers();
-                        }
-                    }
-                });
-            } else {
-                // 離線降級啟動處理
-                if (lastUser) {
-                    username = lastUser;
-                    el('display-username').innerText = username;
-                    loadLocalData(username);
-                    el('login-view').classList.add('hidden');
-                    el('dashboard-view').classList.remove('hidden');
-                    renderMainGrid();
-                } else {
-                    renderRecentUsers();
-                }
-            }
+                        <div class="space-y-5">
+                            <input type="text" id="usernameInput" placeholder="✍️ 請輸入登入名稱" class="w-full px-6 py-4 text-xl rounded-xl border-2 border-pink-200 focus:outline-none focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 text-center transition-all bg-white shadow-inner">
+                            <button onclick="handleLogin(document.getElementById('usernameInput').value)" class="w-full bg-gradient-to-r from-pink-400 to-pink-500 hover:from-pink-500 hover:to-pink-600 text-white font-bold py-4 px-6 text-xl rounded-xl shadow-lg transition-all transform hover:scale-105">
+                                進入系統 🚀
+                            </button>
+                        </div>
+                        
+                        <div class="mt-8 pt-6 border-t-2 border-pink-100 border-dashed">
+                            <p class="text-sm text-pink-400 mb-4 font-bold">☁️ 雲端最近登入紀錄</p>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                ${recentUsers.length > 0 ? recentUsers.slice().reverse().slice(0, 6).map(u => `<button onclick="handleLogin('${u.name}')" class="text-sm font-bold bg-white border border-pink-200 text-pink-600 hover:bg-pink-100 hover:border-pink-300 px-4 py-2 rounded-lg shadow-sm transition-all">${u.name}</button>`).join('') : `<span class="text-sm text-pink-300">尚無紀錄</span>`}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         };
 
-        // ==============================================
-        // 營收系統專屬 UI 繪製邏輯 (捨棄原 document.write，改為純 JS 渲染)
-        // ==============================================
+        window.renderMain = () => {
+            // 動態產生 1~12 月表頭
+            let monthHeaders = '';
+            for(let i=1; i<=12; i++) {
+                monthHeaders += `<div class="bg-pink-200 text-pink-800 font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">🌸 ${i}月</div>`;
+            }
+
+            el('view-container').innerHTML = `
+                <div class="w-full h-full flex flex-col p-4 md:p-8 overflow-y-auto animate-fade-in relative z-10 custom-scrollbar">
+                    <div class="max-w-[1600px] mx-auto w-full flex-1 flex flex-col">
+                        
+                        <!-- 標題與導覽區塊 -->
+                        <div class="relative mb-8 bg-white/80 rounded-3xl p-6 shadow-sm border-2 border-pink-100 flex flex-col xl:flex-row items-center justify-between w-full gap-4">
+                            <div class="flex flex-col md:flex-row items-center gap-4">
+                                <img src="images/logo.jpg" alt="公司 Logo" class="h-16 md:h-20 w-auto rounded-xl shadow-sm object-contain" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%2260%22 viewBox=%220 0 100 60%22%3E%3Crect width=%22100%22 height=%2260%22 rx=%2210%22 fill=%22%23fbcfe8%22/%3E%3Ctext x=%2250%22 y=%2235%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2216%22 text-anchor=%22middle%22 fill=%22%23be185d%22%3ELOGO%3C/text%3E%3C/svg%3E';">
+                                <div class="text-center xl:text-left">
+                                    <h1 class="text-3xl md:text-4xl font-bold text-pink-500 drop-shadow-sm">
+                                        💖 2026年 各分店營收總表 💖
+                                    </h1>
+                                    <p class="text-pink-400 mt-2 font-semibold">點擊各月份格子來填寫週結帳紀錄 ✍️</p>
+                                </div>
+                            </div>
+                            
+                            <!-- 帳號與連線狀態 -->
+                            <div class="flex flex-col items-center xl:items-end gap-3 mt-2 xl:mt-0 bg-pink-50 p-4 rounded-2xl border border-pink-100 shadow-inner">
+                                <div class="flex items-center text-sm font-bold text-pink-700 bg-white px-3 py-1.5 rounded-full border border-pink-200">
+                                    <span class="status-dot ${connectionStatus === 'loading' ? 'bg-amber-400 animate-pulse' : connectionStatus === 'success' ? 'bg-emerald-400' : 'bg-rose-500'}"></span>
+                                    <span>${connectionStatus === 'loading' ? '雲端讀取中...' : connectionStatus === 'success' ? '資料已自動同步' : '離線模式'}</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="font-bold text-purple-700 text-lg">👤 ${username}</span>
+                                    <button onclick="logout()" class="text-rose-500 hover:text-white bg-white hover:bg-rose-400 px-3 py-1.5 rounded-lg border border-rose-200 shadow-sm transition-all font-bold text-sm flex items-center"><span class="mr-1">🚪</span>登出</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 主要年度營收總表 -->
+                        <div class="glass-panel rounded-3xl shadow-xl overflow-hidden mb-8">
+                            <div class="overflow-x-auto custom-scrollbar p-4">
+                                <div class="min-w-[1250px]" style="display: grid; grid-template-columns: 120px repeat(12, minmax(85px, 1fr)) 120px; gap: 4px;">
+                                    
+                                    <!-- 標頭列 -->
+                                    <div class="bg-pink-300 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">🏪 分店</div>
+                                    ${monthHeaders}
+                                    <div class="bg-purple-300 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">💰 合計</div>
+
+                                    <!-- 資料列將由 JS 動態產生 -->
+                                    <div id="grid-body" class="col-span-full" style="display: grid; grid-template-columns: subgrid; gap: 4px;"></div>
+
+                                    <!-- 底部總計列 -->
+                                    <div class="bg-pink-400 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg mt-2 shadow-md whitespace-nowrap">📊 總計</div>
+                                    <div id="monthly-totals" class="col-span-12" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin-top: 8px;"></div>
+                                    <div id="grand-total" class="bg-purple-500 text-white font-bold p-3 rounded-xl flex items-center justify-center text-xl mt-2 shadow-md whitespace-nowrap">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 彈出式視窗 (週營收紀錄表) -->
+                <div id="modal" class="fixed inset-0 bg-pink-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4 transition-opacity duration-300">
+                    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-5xl overflow-hidden border-4 border-pink-200 transform transition-all scale-95 flex flex-col max-h-[90vh]" id="modal-content">
+                        
+                        <!-- 視窗標頭 -->
+                        <div class="bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 p-5 flex justify-between items-center shrink-0">
+                            <h2 class="text-2xl font-bold text-white drop-shadow-md flex items-center gap-2">
+                                <span>🏬</span>
+                                <span id="modal-title"></span>
+                            </h2>
+                            <button onclick="closeModal()" class="text-white hover:text-pink-100 bg-white/20 hover:bg-white/40 rounded-full w-10 h-10 flex items-center justify-center transition-colors text-xl">
+                                ❌
+                            </button>
+                        </div>
+
+                        <!-- 視窗內容 (週結帳表單) -->
+                        <div class="p-6 bg-pink-50/50 flex-1 overflow-y-auto custom-scrollbar">
+                            <div class="overflow-x-auto custom-scrollbar pb-4">
+                                <!-- 表單 Grid 標頭 -->
+                                <div class="min-w-[900px]">
+                                    <div class="grid grid-cols-[60px_140px_1fr_1fr_1fr_1fr_120px_120px_120px] gap-2 mb-3 bg-pink-100 p-3 rounded-2xl font-bold text-pink-800 text-center items-center shadow-sm">
+                                        <div>序號</div>
+                                        <div>📅 日期</div>
+                                        <div>💵 紙鈔</div>
+                                        <div>🪙 零錢</div>
+                                        <div>💳 信用卡</div>
+                                        <div>📱 Line Pay</div>
+                                        <div class="text-purple-700">🧾 實際營收小計</div>
+                                        <div class="text-blue-700">📝 結帳單金額</div>
+                                        <div>⚖️ 正負差額</div>
+                                    </div>
+
+                                    <!-- 6行輸入列 -->
+                                    <div id="modal-rows" class="space-y-2"></div>
+
+                                    <!-- 總計列 -->
+                                    <div class="grid grid-cols-[60px_140px_1fr_1fr_1fr_1fr_120px_120px_120px] gap-2 mt-4 bg-pink-200/80 p-3 rounded-2xl font-bold text-lg items-center text-center shadow-md border-2 border-pink-300">
+                                        <div class="col-span-6 text-right pr-4 text-pink-900">✨ 營收合計 ✨</div>
+                                        <div id="modal-total-actual" class="text-purple-800 bg-white/60 rounded-lg p-1">0</div>
+                                        <div class="text-right pr-4 text-pink-900">差額合計</div>
+                                        <div id="modal-total-diff" class="bg-white/60 rounded-lg p-1">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 按鈕區 -->
+                        <div class="p-6 bg-white border-t border-pink-100 flex justify-end gap-4 shrink-0">
+                            <button onclick="closeModal()" class="px-6 py-3 rounded-xl font-bold text-pink-500 bg-pink-50 border border-pink-200 hover:bg-pink-100 transition-colors">
+                                稍後再填 🏃
+                            </button>
+                            <button onclick="saveModalData()" class="px-8 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 shadow-lg transform hover:scale-105 transition-all flex items-center gap-2">
+                                <span>💾</span> 儲存並同步至雲端
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            renderMainGrid();
+        };
+
+        // ==========================================
+        //  App Logic & Maths
+        // ==========================================
+        window.formatMoney = (num) => {
+            return Number(num).toLocaleString('zh-TW');
+        };
 
         window.getMonthTotalForBranch = (branch, month) => {
-            if (!userData.appData[branch] || !userData.appData[branch][month]) return 0;
+            if (!appData[branch] || !appData[branch][month]) return 0;
             let total = 0;
-            userData.appData[branch][month].forEach(row => {
+            appData[branch][month].forEach(row => {
                 const sub = (Number(row.notes) || 0) + (Number(row.coins) || 0) + 
                             (Number(row.cc) || 0) + (Number(row.line) || 0);
                 total += sub;
@@ -547,80 +483,70 @@
         };
 
         window.renderMainGrid = () => {
-            const gridContainer = el('main-grid-container');
-            if(!gridContainer) return;
-
-            let html = '';
+            const gridBody = document.getElementById('grid-body');
+            const monthlyTotalsContainer = document.getElementById('monthly-totals');
+            if(!gridBody || !monthlyTotalsContainer) return; // Prevent error if off-screen
             
-            // 1. 標頭列
-            html += `<div class="bg-pink-300 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">🏪 分店</div>`;
-            for(let i=1; i<=12; i++) {
-                html += `<div class="bg-pink-200 text-pink-800 font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">🌸 ${i}月</div>`;
-            }
-            html += `<div class="bg-purple-300 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg shadow-inner whitespace-nowrap">💰 合計</div>`;
+            gridBody.innerHTML = '';
+            monthlyTotalsContainer.innerHTML = '';
 
-            // 2. 資料列 (使用 CSS Subgrid)
-            html += `<div id="grid-body" class="col-span-full" style="display: grid; grid-template-columns: subgrid; gap: 4px;">`;
-            
             let grandTotal = 0;
             let monthlyTotals = new Array(12).fill(0);
 
             branches.forEach(branch => {
                 let branchYearTotal = 0;
-                html += `<div class="bg-white font-bold p-3 rounded-xl flex items-center justify-center text-pink-700 shadow-sm border border-pink-100 whitespace-nowrap">${branch}</div>`;
+                gridBody.innerHTML += `<div class="bg-white font-bold p-3 rounded-xl flex items-center justify-center text-pink-700 shadow-sm border border-pink-100 whitespace-nowrap">${branch}</div>`;
 
                 for (let m = 1; m <= 12; m++) {
                     const monthVal = getMonthTotalForBranch(branch, m);
                     branchYearTotal += monthVal;
                     monthlyTotals[m-1] += monthVal;
 
-                    html += `
+                    gridBody.innerHTML += `
                         <div onclick="openModal('${branch}', ${m})" 
-                             class="bg-white p-3 rounded-xl flex items-center justify-end text-gray-600 shadow-sm border border-transparent hover:border-pink-300 hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group relative whitespace-nowrap">
-                            ${monthVal > 0 ? formatMoney(monthVal) : '<span class="text-gray-300">-</span>'}
+                             class="bg-white p-3 rounded-xl flex items-center justify-end text-gray-600 shadow-sm border border-transparent hover:border-pink-400 hover:shadow-md cursor-pointer transition-all hover:-translate-y-1 group relative whitespace-nowrap">
+                            ${monthVal > 0 ? `<span class="font-bold text-pink-900">${formatMoney(monthVal)}</span>` : '<span class="text-pink-100">-</span>'}
                             <div class="absolute inset-0 bg-pink-100/50 opacity-0 group-hover:opacity-100 rounded-xl transition-opacity pointer-events-none"></div>
                         </div>
                     `;
                 }
-                html += `<div class="bg-purple-50 font-bold p-3 rounded-xl flex items-center justify-end text-purple-700 shadow-sm border border-purple-100 whitespace-nowrap">${formatMoney(branchYearTotal)}</div>`;
+                gridBody.innerHTML += `<div class="bg-purple-50 font-bold p-3 rounded-xl flex items-center justify-end text-purple-700 shadow-sm border border-purple-100 whitespace-nowrap">${formatMoney(branchYearTotal)}</div>`;
                 grandTotal += branchYearTotal;
             });
-            html += `</div>`; // End of Data Rows
 
-            // 3. 底部總計列
-            html += `<div class="bg-pink-400 text-white font-bold p-3 rounded-xl flex items-center justify-center text-lg mt-2 shadow-md whitespace-nowrap">📊 總計</div>`;
-            html += `<div class="col-span-12" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin-top: 8px;">`;
             monthlyTotals.forEach(total => {
-                html += `<div class="bg-pink-100 font-bold p-3 rounded-xl flex items-center justify-end text-pink-800 shadow-sm border border-pink-200 whitespace-nowrap">${formatMoney(total)}</div>`;
+                monthlyTotalsContainer.innerHTML += `<div class="bg-pink-100 font-bold p-3 rounded-xl flex items-center justify-end text-pink-800 shadow-sm border border-pink-200 whitespace-nowrap">${formatMoney(total)}</div>`;
             });
-            html += `</div>`;
-            html += `<div class="bg-purple-500 text-white font-bold p-3 rounded-xl flex items-center justify-center text-xl mt-2 shadow-md whitespace-nowrap">${formatMoney(grandTotal)}</div>`;
 
-            // 一次性寫入 DOM，提升效能
-            gridContainer.innerHTML = html;
+            document.getElementById('grand-total').innerText = formatMoney(grandTotal);
         };
 
-        window.createNumberInput = (className, value, placeholder) => `
-            <div>
-                <input type="number" placeholder="${placeholder}" class="${className} w-full p-2 rounded-xl border border-pink-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none text-right shadow-inner text-gray-700 transition-all placeholder:text-gray-300" value="${value || ''}">
-            </div>
-        `;
+        window.createNumberInput = (className, value, placeholder) => {
+            return `
+                <div>
+                    <input type="number" placeholder="${placeholder}" class="${className} w-full p-2 rounded-xl border border-pink-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none text-right shadow-inner text-gray-700 transition-all placeholder:text-gray-300 font-bold" value="${value || ''}" oninput="calculateModalTotals()">
+                </div>
+            `;
+        };
 
         window.openModal = (branch, month) => {
             currentBranch = branch;
             currentMonth = month;
-            el('modal-title').innerText = `${branch} - ${month}月 營收紀錄表`;
-            const modalRows = el('modal-rows');
+            
+            document.getElementById('modal-title').innerText = `${branch} - ${month}月 營收紀錄表`;
+            const modalRows = document.getElementById('modal-rows');
             modalRows.innerHTML = '';
 
-            let monthData = (userData.appData[branch] && userData.appData[branch][month]) ? userData.appData[branch][month] : [];
+            let monthData = (appData[branch] && appData[branch][month]) ? appData[branch][month] : [];
             
             for (let i = 0; i < 6; i++) {
                 const row = monthData[i] || { date: '', notes: '', coins: '', cc: '', line: '', receipt: '' };
                 modalRows.innerHTML += `
                     <div class="grid grid-cols-[60px_140px_1fr_1fr_1fr_1fr_120px_120px_120px] gap-2 items-center row-entry group hover:bg-pink-50 p-1 rounded-xl transition-colors">
                         <div class="text-center font-bold text-pink-400 bg-white rounded-lg py-2 shadow-sm border border-pink-100">${i + 1}</div>
-                        <div><input type="date" class="row-date w-full p-2 rounded-xl border border-pink-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none text-sm text-gray-600 shadow-inner" value="${row.date}"></div>
+                        <div>
+                            <input type="date" class="row-date w-full p-2 rounded-xl border border-pink-200 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none text-sm text-gray-600 shadow-inner" value="${row.date}">
+                        </div>
                         ${createNumberInput('row-notes', row.notes, '紙鈔')}
                         ${createNumberInput('row-coins', row.coins, '零錢')}
                         ${createNumberInput('row-cc', row.cc, '信用卡')}
@@ -632,24 +558,21 @@
                 `;
             }
 
-            document.querySelectorAll('.row-entry input[type="number"]').forEach(input => {
-                input.addEventListener('input', calculateModalTotals);
-            });
-
-            const modal = el('modal');
-            const modalContent = el('modal-content');
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modal-content');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             setTimeout(() => {
                 modalContent.classList.remove('scale-95');
                 modalContent.classList.add('scale-100');
             }, 10);
+
             calculateModalTotals();
         };
 
         window.closeModal = () => {
-            const modal = el('modal');
-            const modalContent = el('modal-content');
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modal-content');
             modalContent.classList.remove('scale-100');
             modalContent.classList.add('scale-95');
             setTimeout(() => {
@@ -659,8 +582,11 @@
         };
 
         window.calculateModalTotals = () => {
-            let totalActual = 0, totalDiff = 0;
-            document.querySelectorAll('.row-entry').forEach(row => {
+            let totalActual = 0;
+            let totalDiff = 0;
+
+            const rows = document.querySelectorAll('.row-entry');
+            rows.forEach(row => {
                 const notes = Number(row.querySelector('.row-notes').value) || 0;
                 const coins = Number(row.querySelector('.row-coins').value) || 0;
                 const cc = Number(row.querySelector('.row-cc').value) || 0;
@@ -676,29 +602,40 @@
                 if (subtotal !== 0 || row.querySelector('.row-receipt').value !== '') {
                     diff = subtotal - receipt;
                     diffElement.innerText = formatMoney(diff);
-                    if (diff < 0) diffElement.className = 'row-diff text-right font-bold p-2 rounded-xl shadow-inner border border-red-200 bg-red-50 text-red-500';
-                    else if (diff > 0) diffElement.className = 'row-diff text-right font-bold p-2 rounded-xl shadow-inner border border-green-200 bg-green-50 text-green-600';
-                    else diffElement.className = 'row-diff text-right font-bold p-2 rounded-xl shadow-inner border border-gray-100 bg-gray-50 text-gray-700';
+                    if (diff < 0) {
+                        diffElement.className = 'row-diff text-right font-bold p-2 rounded-xl shadow-inner border border-red-200 bg-red-50 text-red-500';
+                    } else if (diff > 0) {
+                        diffElement.className = 'row-diff text-right font-bold p-2 rounded-xl shadow-inner border border-green-200 bg-green-50 text-green-600';
+                    } else {
+                         diffElement.className = 'row-diff text-right font-bold p-2 rounded-xl shadow-inner border border-gray-100 bg-gray-50 text-gray-700';
+                    }
                 } else {
                     diffElement.innerText = '';
                     diffElement.className = 'row-diff text-right font-bold p-2 rounded-xl shadow-inner border border-gray-100 bg-gray-50';
                 }
+
                 totalActual += subtotal;
                 totalDiff += diff;
             });
 
-            el('modal-total-actual').innerText = formatMoney(totalActual);
-            const totalDiffEl = el('modal-total-diff');
+            document.getElementById('modal-total-actual').innerText = formatMoney(totalActual);
+            const totalDiffEl = document.getElementById('modal-total-diff');
             totalDiffEl.innerText = formatMoney(totalDiff);
-            if (totalDiff < 0) totalDiffEl.className = 'bg-white/90 rounded-lg p-1 text-red-600 border border-red-300';
-            else if (totalDiff > 0) totalDiffEl.className = 'bg-white/90 rounded-lg p-1 text-green-600 border border-green-300';
-            else totalDiffEl.className = 'bg-white/60 rounded-lg p-1 text-gray-700';
+            if (totalDiff < 0) {
+                totalDiffEl.className = 'bg-white/90 rounded-lg p-1 text-red-600 border border-red-300';
+            } else if (totalDiff > 0) {
+                totalDiffEl.className = 'bg-white/90 rounded-lg p-1 text-green-600 border border-green-300';
+            } else {
+                totalDiffEl.className = 'bg-white/60 rounded-lg p-1 text-gray-700';
+            }
         };
 
         window.saveModalData = () => {
-            if (!userData.appData[currentBranch]) userData.appData[currentBranch] = {};
+            if (!appData[currentBranch]) appData[currentBranch] = {};
+            
             const monthData = [];
-            document.querySelectorAll('.row-entry').forEach(row => {
+            const rows = document.querySelectorAll('.row-entry');
+            rows.forEach(row => {
                 monthData.push({
                     date: row.querySelector('.row-date').value,
                     notes: row.querySelector('.row-notes').value,
@@ -709,21 +646,25 @@
                 });
             });
 
-            // 1. 更新資料
-            userData.appData[currentBranch][currentMonth] = monthData;
-            playSaveSound();
+            appData[currentBranch][currentMonth] = monthData;
             
-            // 2. 觸發雙向同步寫入 (會自動處理本地與雲端)
+            // 觸發雲端儲存
             saveUserDataToCloud();
+            
             closeModal();
-            renderMainGrid(); 
+            renderMainGrid();
         };
 
-        // Modal 背景點擊關閉
-        el('modal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+        // Modal 點擊背景關閉事件綁定
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('modal');
+            if (modal && !modal.classList.contains('hidden') && e.target === modal) {
+                closeModal();
+            }
+        });
 
-        // 啟動 App
-        bootApp();
+        // Initialize App
+        initApp();
 
     </script>
 </body>
